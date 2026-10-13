@@ -31,39 +31,22 @@ Alcance: **§3.1** (balanceo con Docker) y **§3.2** (multi-distribución).
                       SPA + API Flask            SPA + API Flask
                       volume app-data-1          volume app-data-2
 ```
-
-**Quién hace qué:** tú creas las VMs a mano en VirtualBox e instalas el SO; los
-scripts dejan Docker+firewall listos; Compose despliega y persiste.
-
 ---
 
 ## Ejecución (VM, ruta recomendada)
 
-> Comandos con `[HOST]` = tu equipo (Windows/Linux) · `[VM]` = dentro de la VM.
+> Comandos con `[HOST]` 
 
-1. **Crear la VM** `[HOST]` (VirtualBox, GUI): Linux · **1 vCPU · 1 GiB RAM · 10 GiB
-   VDI dinámico**. Red: **Adaptador 1 = NAT** (Internet) y **Adaptador 2 = Host-Only**
-   (SSH host↔VM, `192.168.56.x`). Monta la ISO y arranca.
-2. **Instalar el SO** `[VM]`:
-   - **Debian 12**: instalación guiada + **SSH server**; usuario `opc`.
-   - **Rocky 9**: selección de software **Minimal**; usuario `opc` administrador.
-3. **SSH** `[HOST]`: `ip -4 addr show` en la VM → `ssh opc@192.168.56.x`.
-4. **Preparar el SO** `[VM]` (necesita sudo):
-   ```bash
-   sudo bash infraestructura/scripts/setup_debian.sh   # Debian
-   sudo bash infraestructura/scripts/setup_rocky.sh    # Rocky
-   ```
-   Instala Docker + plugin de Compose, habilita el servicio y abre SSH + `8080`.
-5. **Clonar y configurar** `[VM]`:
+1. **Clonar y configurar** `[VM]`:
    ```bash
    git clone <URL-del-repo>
    cd <repo>/infraestructura
-   cp .env.example .env        # ajusta APP_SECRET_KEY
+   cp .env.example .env       
    ```
 6. **Levantar el stack** `[VM]`:
    ```bash
    docker compose up -d --build
-   docker compose ps           # opc-app-1, opc-app-2, opc-lb -> healthy
+   docker compose ps           
    ```
 
 > El `--build` compila el SPA (Node 18) dentro de la imagen del backend y
