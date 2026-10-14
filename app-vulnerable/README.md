@@ -44,6 +44,12 @@ npm install
 npm start               # http://localhost:4200 (proxy hacia el backend)
 ```
 
+> Nota de despliegue: para construir el SPA **dentro de la imagen del backend**
+> se añadieron `frontend/angular.json` y `frontend/tsconfig.app.json` (faltaban en
+> el repo); el SPA se sirve desde la réplica con un wrapper de infraestructura
+> (`infraestructura/docker/backend/serve_with_spa.py`), sin tocar el código de la
+> app. Ver `../docs/infraestructura/frontend-despliegue.md`.
+
 ## Cómo correr las herramientas (sugerido)
 
 ```bash

@@ -1,5 +1,21 @@
 #!/usr/bin/env bash
-
+# =============================================================================
+# Preparacion de una VM Debian 11/12 para el despliegue 3.1/3.2 de OPC Tickets.
+#
+# Uso (como root o con sudo):
+#   sudo bash scripts/setup_debian.sh
+#
+# Hace:
+#   1. Instala Docker CE (repositorio oficial de Docker).
+#   2. Habilita el servicio Docker en systemd.
+#   3. Configura el firewall UFW (SSH + 8080 de la entrada del stack/frontend).
+#   4. Deja el usuario actual en el grupo `docker`.
+#   5. Instala `git` (necesario para clonar el repositorio en la FASE 6:
+#      no viene en la instalacion "standard utilities" de Debian).
+#
+# Nota AppArmor: en Debian AppArmor esta activo por defecto y Docker ya
+# confina los contenedores con sus propios perfiles. No requiere accion extra.
+# =============================================================================
 set -euo pipefail
 
 if [ "$(id -u)" -ne 0 ]; then
@@ -44,6 +60,7 @@ echo "==> [4/4] Firewall UFW (SSH + 8080)"
 if command -v ufw >/dev/null 2>&1; then
     ufw allow OpenSSH
     ufw allow 8080/tcp comment "OPC Tickets - Nginx"
+    # ufw --force enable activa el firewall y evita el prompt interactivo.
     ufw --force enable
 else
     echo "AVISO: ufw no instalado; instalar con 'apt-get install ufw'." >&2
