@@ -1,9 +1,9 @@
 FROM node:18-alpine AS front-builder
 WORKDIR /front
-COPY app-vulnerable/frontend/package.json ./
-RUN npm install --no-audit --no-fund
+COPY app-vulnerable/frontend/package.json app-vulnerable/frontend/package-lock.json ./
+RUN --mount=type=cache,target=/root/.npm npm ci --no-audit --no-fund
 COPY app-vulnerable/frontend/ ./
-RUN npm run build
+RUN --mount=type=cache,target=/front/.angular/cache npm run build
 
 
 FROM python:3.9-slim-bookworm AS builder
