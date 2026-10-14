@@ -35,22 +35,14 @@ RUN pip install --no-cache-dir --no-index --find-links /wheels -r requirements.t
 
 COPY --chown=opc:opc app-vulnerable/backend /app
 
-# Wrapper que sirve el SPA ademas de la API (vive en infraestructura/).
 COPY --chown=opc:opc infraestructura/docker/backend/serve_with_spa.py /app/serve_with_spa.py
 
-# SPA compilado en la etapa 1. La app lo sirve desde /app/spa (SPA_DIR).
 COPY --from=front-builder /front/dist/opc-tickets-frontend/ /app/spa/
 
-# /app/data: raiz de datos persistentes (config.py -> APP_DATA_DIR=/app/data).
-# Se crea con el dueno correcto: cuando Docker initializa un named volume en
-# una ruta existente, copia el contenido del directorio y conserva su
-# propiedades, de modo que la app (usuario no-root) puede escribir en el
-# volumen sin problemas de permisos.
 RUN mkdir -p /app/data && chown opc:opc /app/data
 
 USER opc
 
 EXPOSE 5000
 
-# serve_with_spa.py inicializa la base, sirve la API y el SPA en 0.0.0.0:5000.
 CMD ["python", "serve_with_spa.py"]

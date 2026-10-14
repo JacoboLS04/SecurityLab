@@ -1,21 +1,4 @@
 #!/usr/bin/env bash
-# =============================================================================
-# Preparacion de una VM Rocky Linux 8/9 (o AlmaLinux/RHEL) para el despliegue
-# 3.1/3.2 de OPC Tickets.
-#
-# Uso (como root o con sudo):
-#   sudo bash scripts/setup_rocky.sh
-#
-# Hace:
-#   1. Instala Docker CE (repositorio oficial: usa el canal "centos", el
-#      estandar para derivados de RHEL).
-#   2. Habilita el servicio Docker en systemd.
-#   3. Configura firewalld (SSH + 8080 de la entrada del stack/frontend).
-#   4. Deja el usuario actual en el grupo `docker`. SELinux permanece
-#      ENFORCING: no se relaja, el compose ya etiqueta los volumenes con :z.
-#   5. Instala `git` (la ISO Minimal de Rocky NO lo trae; lo necesita el
-#      `git clone` de la FASE 6).
-# =============================================================================
 set -euo pipefail
 
 if [ "$(id -u)" -ne 0 ]; then

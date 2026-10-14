@@ -125,18 +125,8 @@ infraestructura/
 │   ├── Dockerfile             # compila el SPA (node:18) + API no-root
 │   └── serve_with_spa.py      # sirve SPA + API sin tocar la app
 ├── scripts/setup_{debian,rocky}.sh   # preparación del SO
-└── iso/                       # (optativo) ISOs de instalación
+|
 ```
 
 ---
 
-## Notas
-
-- **Evidencia**: el repo **no incluye capturas**. Las pruebas se reproducen con los
-  comandos de arriba y el informe (con **tus** umbrales) lo elaboras tú.
-- **Pendiente**: capturas del despliegue dentro de las VMs Debian 12 y Rocky 9.
-- **Más detalle**: redes y flujo de paquetes (`../docs/infraestructura/redes.md`),
-  diseño de la opción "app completa por réplica"
-  (`../docs/infraestructura/frontend-despliegue.md`,
-  `../docs/infraestructura/como-funciona-el-balanceo.md`) y guía de cambios
-  (`../docs/infraestructura/guia-cambios-y-pruebas.md`).

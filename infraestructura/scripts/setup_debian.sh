@@ -1,21 +1,4 @@
 #!/usr/bin/env bash
-# =============================================================================
-# Preparacion de una VM Debian 11/12 para el despliegue 3.1/3.2 de OPC Tickets.
-#
-# Uso (como root o con sudo):
-#   sudo bash scripts/setup_debian.sh
-#
-# Hace:
-#   1. Instala Docker CE (repositorio oficial de Docker).
-#   2. Habilita el servicio Docker en systemd.
-#   3. Configura el firewall UFW (SSH + 8080 de la entrada del stack/frontend).
-#   4. Deja el usuario actual en el grupo `docker`.
-#   5. Instala `git` (necesario para clonar el repositorio en la FASE 6:
-#      no viene en la instalacion "standard utilities" de Debian).
-#
-# Nota AppArmor: en Debian AppArmor esta activo por defecto y Docker ya
-# confina los contenedores con sus propios perfiles. No requiere accion extra.
-# =============================================================================
 set -euo pipefail
 
 if [ "$(id -u)" -ne 0 ]; then

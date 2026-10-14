@@ -1,44 +1,15 @@
-# Docker Compose para el despliegue 3.1/3.2 de OPC Tickets.
-# Aplicacion completa replicada (Opcion C): cada replica sirve el SPA Angular
-# Y la API Flask, balanceadas por Nginx.
-#
-#   Cliente -> lb (opc-lb :8080, balanceador round-robin)
-#                 -> app1:5000  (SPA + API)
-#                 -> app2:5000  (SPA + API)
-#
-# La infraestructura vive en este directorio; consume la aplicacion original
-# desde ../app-vulnerable sin modificar su codigo (el SPA se compila en el
-# Dockerfile y se sirve con un wrapper que vive en infraestructura/, ver README).
-#
-# Uso:
-#   cp .env.example .env
-#   docker compose up -d --build
-
 name: opc-tickets
-
-# Base comun de las replicas. Se definen dos servicios (app1/app2) en vez de
-# `deploy.replicas` para que funcionen igual con `docker compose` directamente
-# (sin Swarm) y para poder referenciarlas por nombre en el upstream de Nginx.
 x-app-base: &app-base
   image: opc-backend:local
   build:
-    # Contexto = raiz del repo (Docker exige el Dockerfile dentro del contexto;
-    # por eso es `..` desde infraestructura/). El Dockerfile compila el SPA y
-    # copia app-vulnerable/backend + el wrapper de infraestructura/, dejando
-    # intacto el codigo de la aplicacion.
     context: ..
     dockerfile: infraestructura/docker/backend/Dockerfile
   env_file:
     - .env
   environment:
-    # El servidor Flask con debug=1 arranca un recargador que bifurca procesos
-    # y complica healthchecks/logs por replica. En este despliegue se apaga.
     FLASK_DEBUG: "0"
-    # Raiz de los datos persistentes de la app (SQLite, adjuntos, exportaciones,
-    # logs). config.py la lee de aqui; sobre esta ruta se monta el named volume.
     APP_DATA_DIR: /app/data
   restart: unless-stopped
-  # Usuario sin privilegios (definido en el Dockerfile) + sin capabilities.
   cap_drop:
     - ALL
   security_opt:
@@ -54,9 +25,6 @@ services:
     <<: *app-base
     container_name: opc-app-1
     volumes:
-      # Named volume PRIVADO de esta replica (NO compartido con app2).
-      # La app usa SQLite: dos procesos escribiendo en el mismo archivo
-      # provocan bloqueos/corrupcion. Cada replica persiste la suya.
       - app-data-1:/app/data
     healthcheck:
       test:
@@ -76,8 +44,6 @@ services:
     <<: *app-base
     container_name: opc-app-2
     volumes:
-      # Named volume PRIVADO de esta replica (NO compartido con app1). Mismo
-      # razonamiento: SQLite no soporta escritura concurrente entre procesos.
       - app-data-2:/app/data
     healthcheck:
       test:
@@ -96,14 +62,9 @@ services:
   lb:
     image: nginxinc/nginx-unprivileged:1.27-alpine
     container_name: opc-lb
-    # Entrada publica del stack: publica 8080 y reparte TODO el trafico (/, SPA
-    # y API) entre app1 y app2 (opcion C: cada replica sirve la app completa).
     ports:
-      # 8080 en el host -> 8080 en el contenedor (imagen no-root, no usa 80).
       - "8080:8080"
     volumes:
-      # `z` solo tiene efecto en hosts con SELinux (Rocky/RHEL): etiqueta el
-      # archivo como container_file_t. En Debian (AppArmor) Docker lo ignora.
       - ./deploy/nginx.conf:/etc/nginx/nginx.conf:ro,z
     restart: unless-stopped
     depends_on:
@@ -128,13 +89,6 @@ services:
           memory: 64M
 
 volumes:
-  # Named volumes de persistencia de la aplicacion (SQLite + adjuntos +
-  # exportaciones + logs). Cada replica tiene el SUYO: no se comparten.
-  #
-  # Ciclo de vida:
-  #   docker compose down       -> conserva los volumes (datos intactos)
-  #   docker compose up -d      -> reutiliza los mismos volumes
-  #   docker compose down -v    -> BORRA los volumes (datos perdidos)
   app-data-1:
     name: app-data-1
   app-data-2:
