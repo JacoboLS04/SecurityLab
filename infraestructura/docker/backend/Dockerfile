@@ -1,22 +1,27 @@
 FROM node:18-alpine AS front-builder
 WORKDIR /front
 COPY app-vulnerable/frontend/package.json app-vulnerable/frontend/package-lock.json ./
-RUN --mount=type=cache,target=/root/.npm npm ci --no-audit --no-fund
+RUN --mount=type=cache,target=/root/.npm \
+    --mount=type=cache,target=/front/node_modules \
+    npm install --no-audit --no-fund
 COPY app-vulnerable/frontend/ ./
-RUN --mount=type=cache,target=/front/.angular/cache npm run build
+RUN --mount=type=cache,target=/front/node_modules \
+    --mount=type=cache,target=/front/.angular/cache \
+    npm run build
 
 
 FROM python:3.9-slim-bookworm AS builder
 
-ENV PIP_NO_CACHE_DIR=1
 WORKDIR /src
 
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends build-essential python3-dev \
-    && rm -rf /var/lib/apt/lists/*
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt/lists,sharing=locked \
+    apt-get update \
+    && apt-get install -y --no-install-recommends build-essential python3-dev
 
 COPY app-vulnerable/backend/requirements.txt ./
-RUN pip install --upgrade pip \
+RUN --mount=type=cache,target=/root/.cache/pip \
+    pip install --upgrade pip \
     && pip wheel --wheel-dir /wheels -r requirements.txt
 
 
